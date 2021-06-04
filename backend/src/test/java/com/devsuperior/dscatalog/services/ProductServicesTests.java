@@ -61,32 +61,35 @@ public class ProductServicesTests {
 
 		page = new PageImpl<>(List.of(product));
 
-		
-		// Behavior of mock repository (ProductRepository)
+		// Behavior of mock repository: ProductRepository
+
+		Mockito.when(repository.findAll((Pageable) ArgumentMatchers.any())).thenReturn(page);
+
+		Mockito.when(repository.save(ArgumentMatchers.any())).thenReturn(product);
 
 		Mockito.when(repository.getOne(existingId)).thenReturn(product);
 		Mockito.when(repository.getOne(nonExistingId)).thenThrow(EntityNotFoundException.class);
 
-		Mockito.when(categoryRepository.getOne(existingId)).thenReturn(category);
-
-		Mockito.when(repository.save(ArgumentMatchers.any())).thenReturn(product);
-
 		Mockito.when(repository.findById(existingId)).thenReturn(Optional.of(product));
 		Mockito.when(repository.findById(nonExistingId)).thenReturn(Optional.empty());
 
-		Mockito.when(repository.findAll((Pageable) ArgumentMatchers.any())).thenReturn(page);
 		Mockito.doNothing().when(repository).deleteById(existingId);
 		Mockito.doThrow(EmptyResultDataAccessException.class).when(repository).deleteById(nonExistingId);
 		Mockito.doThrow(DataIntegrityViolationException.class).when(repository).deleteById(dependentId);
+
+		// Behavior of mock repository: CategoryRepository
+		Mockito.when(categoryRepository.getOne(existingId)).thenReturn(category);
+		Mockito.when(categoryRepository.getOne(nonExistingId)).thenThrow(EntityNotFoundException.class);
+
 	}
 
 	@Test
 	public void updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
-		
-		Assertions.assertThrows(ResourceNotFoundException.class, () ->{
-			ProductDTO result = service.update(nonExistingId, productDTO);			
+
+		Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+			ProductDTO result = service.update(nonExistingId, productDTO);
 		});
-		
+
 		Mockito.verify(repository, Mockito.times(1)).getOne(nonExistingId);
 
 	}
